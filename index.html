@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مكتبة الألعاب القصصية - النسخة النهائية</title>
+<style>
+:root{--bg:#f4f4f9;--card:#fff;--text:#222;--muted:#555;--accent:#0078ff;--header:#222;}
+[data-theme="dark"]{--bg:#0f1115;--card:#0f1720;--text:#e6eef8;--muted:#98a1b3;--accent:#3ea6ff;--header:#0b0d10;}
+body{margin:0;font-family:Segoe UI,Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);}
+header{background:var(--header);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center;}
+header h1{margin:0;font-size:20px;}
+.container{display:flex;max-width:1200px;margin:20px auto;gap:16px;}
+.sidebar{width:250px;background:var(--card);padding:16px;border-radius:12px;flex-shrink:0;}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;flex:1;}
+.card{background:var(--card);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:400px;box-shadow:0 6px 18px rgba(0,0,0,0.08);}
+.card img{width:100%;height:170px;object-fit:cover;}
+.card .info{padding:12px;flex:1;display:flex;flex-direction:column;}
+.card h3{margin:0;font-size:18px;}
+.card .meta{font-size:13px;color:var(--muted);margin:6px 0;}
+.card .desc{font-size:14px;color:var(--muted);}
+.card .story{font-size:13px;color:var(--muted);margin-top:6px;}
+.card .price{font-weight:bold;color:var(--accent);margin-bottom:6px;}
+.card .actions{display:flex;gap:6px;padding:8px;justify-content:space-between;}
+.btn{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;font-size:13px;}
+.story-btn{background:var(--accent);color:#fff;}
+.trailer-btn{background:#444;color:#fff;}
+input, select{width:100%;padding:8px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;}
+footer{text-align:center;color:var(--muted);margin-top:20px;font-size:13px;}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:50;padding:20px;}
+.modal.show{display:flex;}
+.modal-box{width:100%;max-width:900px;background:var(--card);border-radius:12px;padding:16px;color:var(--text);max-height:90vh;overflow:auto;display:flex;flex-direction:column;gap:12px;}
+.modal-box iframe{width:100%;height:315px;border-radius:12px;}
+.close-modal{align-self:flex-end;padding:6px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);cursor:pointer;background:transparent;}
+@media(max-width:900px){.container{flex-direction:column;}.sidebar{width:100%;}}
+</style>
+</head>
+<body>
+
+<header>
+<h1>مكتبة الألعاب القصصية</h1>
+<div>
+<button id="darkBtn" class="btn">🌑 داكن</button>
+<button id="lightBtn" class="btn">☀️ فاتح</button>
+</div>
+</header>
+
+<div class="container">
+<div class="sidebar">
+<h3>البحث والفلتر</h3>
+<input type="text" id="search" placeholder="ابحث عن لعبة">
+<select id="filterPlatform"><option>الكل</option><option>PC</option></select>
+<select id="filterPrice"><option>الكل</option><option>أقل من 30$</option><option>30$ - 60$</option><option>أكثر من 60$</option></select>
+<button id="clearBtn" class="btn">مسح البحث</button>
+</div>
+
+<div class="games-grid" id="gamesGrid"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+<div class="modal-box">
+<button class="close-modal" id="closeModal">إغلاق ✕</button>
+<h2 id="modalTitle"></h2>
+<p id="modalMeta" style="color:var(--muted);font-size:13px;"></p>
+<img id="modalImg" src="" style="width:100%;border-radius:8px;">
+<p id="modalDesc"></p>
+<h4>قصة اللعبة:</h4>
+<p id="modalStory"></p>
+<h4>تريلر:</h4>
+<iframe id="modalTrailer" src="" frameborder="0" allowfullscreen></iframe>
+</div>
+</div>
+
+<footer>منذ 1447 هـ - جميع الحقوق محفوظة</footer>
+
+<script>
+const games=[
+{id:1,name:"The Last of Us",platforms:["PC"],img:"lastofus.jpg",desc:"قصة ناجٍ وطفلة في عالم مدمر بعد وباء قاتل.",story:"تدور القصة حول جويل وإيلي في رحلة للبقاء.",price:"60$",trailer:"https://www.youtube.com/embed/W01L70IGBgE",buyLink:"https://store.steampowered.com/"},
+{id:2,name:"Red Dead Redemption 2",platforms:["PC"],img:"rdr2.jpg",desc:"ملحمة الغرب الأمريكي.",story:"تلعب بدور آرثر مورغان الذي يحاول البقاء والوفاء لعصابته.",price:"60$",trailer:"https://www.youtube.com/embed/eaW0tYpxyp0",buyLink:"https://store.steampowered.com/"},
+{id:3,name:"God of War (2018)",platforms:["PC"],img:"godofwar.jpg",desc:"رحلة أب وابنه.",story:"كريتوس يسعى لتربية ابنه أتريوس ومواجهة الآلهة.",price:"50$",trailer:"https://www.youtube.com/embed/K0u_kAWLJOA",buyLink:"https://store.steampowered.com/"},
+{id:4,name:"Life is Strange",platforms:["PC"],img:"lifeisstrange.jpg",desc:"مغامرة تعتمد على الاختيارات.",story:"ماكس تكتشف قدرتها على إرجاع الزمن لتغيير الأحداث.",price:"20$",trailer:"https://www.youtube.com/embed/1JZxQbC8X7M",buyLink:"https://store.steampowered.com/"},
+{id:5,name:"Detroit: Become Human",platforms:["PC"],img:"detroit.jpg",desc:"قصة تفاعلية عن ذكاء اصطناعي.",story:"تتابع مصائر عدة شخصيات آلية في عالم مستقبلي.",price:"50$",trailer:"https://www.youtube.com/embed/9gU9xTj6ksg",buyLink:"https://store.steampowered.com/"},
+{id:6,name:"Horizon Zero Dawn",platforms:["PC"],img:"horizon.jpg",desc:"مغامرة عالم مفتوح مع روبوتات ضخمة.",story:"أروى تحارب الآلات وتكتشف ماضي البشرية.",price:"60$",trailer:"https://www.youtube.com/embed/Jt6k6QXw3pM",buyLink:"https://store.steampowered.com/"},
+{id:7,name:"The Witcher 3: Wild Hunt",platforms:["PC"],img:"witcher3.jpg",desc:"صائد الوحوش جيرالت.",story:"رحلة جيرالت للبحث عن سيرانا ومواجهة التحديات.",price:"60$",trailer:"https://www.youtube.com/embed/Yz4k5q5vYvE",buyLink:"https://store.steampowered.com/"},
+{id:8,name:"Mass Effect 2",platforms:["PC"],img:"masseffect2.jpg",desc:"خيال علمي وفضاء.",story:"القائد شيبارد يحارب قوى تهدد المجرة.",price:"60$",trailer:"https://www.youtube.com/embed/Jf3q0dZg9zI",buyLink:"https://store.steampowered.com/"},
+{id:9,name:"Uncharted 4: A Thief's End",platforms:["PC"],img:"uncharted4.jpg",desc:"مغامرة ناثان دريك.",story:"ناثان يسعى للعثور على كنوز غامضة.",price:"60$",trailer:"https://www.youtube.com/embed/2h0w0J9Q6o4",buyLink:"https://store.steampowered.com/"},
+{id:10,name:"Bioshock Infinite",platforms:["PC"],img:"bioshockinfinite.jpg",desc:"خيال علمي مع قصة قوية.",story:"تتبع بوكر ديويت رحلة إنقاذ إليزابيث.",price:"60$",trailer:"https://www.youtube.com/embed/8M8xQ0yqg9Y",buyLink:"https://store.steampowered.com/"},
+{id:11,name:"Assassin's Creed Valhalla",platforms:["PC"],img:"assassinscreed.jpg",desc:"رحلة في عصر الفايكنغ.",story:"إيفور يحارب من أجل مجده في إنجلترا.",price:"60$",trailer:"https://www.youtube.com/embed/ssrNcwxALS4",buyLink:"https://store.steampowered.com/"},
+{id:12,name:"Cyberpunk 2077",platforms:["PC"],img:"cyberpunk2077.jpg",desc:"مستقبل مظلم وعالم مفتوح.",story:"تلعب بدور V في مدينة نايت سيتي.",price:"60$",trailer:"https://www.youtube.com/embed/8X2kIfS6fb8",buyLink:"https://store.steampowered.com/"},
+{id:13,name:"Tomb Raider (2013)",platforms:["PC"],img:"tombraider.jpg",desc:"إعادة إحياء مغامرات لارا.",story:"لارا كرافت تكتشف الجزيرة وتحارب خصومها.",price:"40$",trailer:"https://www.youtube.com/embed/HGzEZxk-RbM",buyLink:"https://store.steampowered.com/"},
+{id:14,name:"Spider-Man (PS4)",platforms:["PC"],img:"spiderman.jpg",desc:"تجربة سوبر هيرو.",story:"بيتر باركر يحارب الجريمة في نيويورك.",price:"50$",trailer:"https://www.youtube.com/embed/n9DwoQ7HWvI",buyLink:"https://store.steampowered.com/"},
+{id:15,name:"Final Fantasy VII Remake",platforms:["PC"],img:"ff7remake.jpg",desc:"قصة كلاسيكية مع إعادة تصميم.",story:"كلاود يحارب شركة شينرا وينقذ المدينة.",price:"60$",trailer:"https://www.youtube.com/embed/ERgrFVhL-nU",buyLink:"https://store.steampowered.com/"},
+{id:16,name:"Resident Evil 2 (Remake)",platforms:["PC"],img:"re2remake.jpg",desc:"رعب وبقاء.",story:"ليون وكلير يحاولان النجاة من الزومبي.",price:"60$",trailer:"https://www.youtube.com/embed/IgTf1O-v5Bk",buyLink:"https://store.steampowered.com/"},
+{id:17,name:"Sekiro: Shadows Die Twice",platforms:["PC"],img:"sekiro.jpg",desc:"أكشن وتحدي.",story:"نينجا يسعى للانتقام وإنقاذ سيده.",price:"60$",trailer:"https://www.youtube.com/embed/5Z0HtyVbGFA",buyLink:"https://store.steampowered.com/"},
+{id:18,name:"Ghost of Tsushima",platforms:["PC"],img:"ghostoftsushima.jpg",desc:"ساموراي يحمي الجزيرة.",story:"جنجيرو يقاتل الغزاة المغول ويبحث عن الشرف.",price:"60$",trailer:"https://www.youtube.com/embed/M7XM597XO94",buyLink:"https://store.steampowered.com/"},
+{id:19,name:"Persona 5",platforms:["PC"],img:"persona5.jpg",desc:"قصة شباب خارقين.",story:"طالب ينضم للفايتينغ ويروي قصص التغيير.",price:"50$",trailer:"https://www.youtube.com/embed/1QZ5c9rOJxY",buyLink:"https://store.steampowered.com/"},
+{id:20,name:"The Legend of Zelda: Breath of the Wild",platforms:["PC"],img:"zelda.jpg",desc:"عالم مفتوح وخيال.",story:"لينك يستكشف هايرول ويحارب الشر.",price:"60$",trailer:"https://www.youtube.com/embed/1rPxiXXxftE",buyLink:"https://store.steampowered.com/"},
+];
+
+const grid=document.getElementById('gamesGrid');
+
+function renderGames(list){
+  grid.innerHTML='';
+  list.forEach(g=>{
+    const card=document.createElement('article');
+    card.className='card';
+    card.innerHTML=`
+    <img src="images/${g.img}" alt="${g.name}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=600 height=360><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=middle text-anchor=middle fill=\\'%23999\\' font-family=Arial font-size=20>صورة مفقودة</text></svg>'" />
+    <div class="info">
+      <h3>${g.name}</h3>
+      <div class="meta">${g.platforms.join('، ')}</div>
+      <div class="price">${g.price} <a href="${g.buyLink}" target="_blank" style="font-size:12px;color:var(--accent);margin-left:5px;text-decoration:underline;">اضغط للشراء</a></div>
+      <div class="desc">${g.desc}</div>
+      <div class="story">${g.story}</div>
+    </div>
+    <div class="actions">
+      <button class="story-btn btn" data-id="${g.id}">عرض القصة</button>
+      <button class="trailer-btn btn" data-id="${g.id}">مشاهدة التريلر</button>
+    </div>
+    `;
+    grid.appendChild(card);
+  });
+  attachEvents();
+}
+
+function attachEvents(){
+  document.querySelectorAll('.story-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      const id=Number(btn.getAttribute('data-id'));
+      const g=games.find(x=>x.id===id);
+      if(!g) return;
+      showModal(g,false);
+    };
+  });
+  document.querySelectorAll('.trailer-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      const id=Number(btn.getAttribute('data-id'));
+      const g=games.find(x=>x.id===id);
+      if(!g) return;
+      showModal(g,true);
+    };
+  });
+}
+
+const modal=document.getElementById('modal');
+const modalTitle=document.getElementById('modalTitle');
+const modalMeta=document.getElementById('modalMeta');
+const modalImg=document.getElementById('modalImg');
+const modalDesc=document.getElementById('modalDesc');
+const modalStory=document.getElementById('modalStory');
+const modalTrailer=document.getElementById('modalTrailer');
+document.getElementById('closeModal').onclick=()=>{modal.classList.remove('show');modalTrailer.src='';};
+
+function showModal(game,showTrailer=false){
+  modal.classList.add('show');
+  modalTitle.textContent=game.name;
+  modalMeta.textContent=`${game.platforms.join('، ')}`;
+  modalImg.src=`images/${game.img}`;
+  modalDesc.textContent=game.desc;
+  modalStory.textContent=game.story;
+  modalTrailer.src=showTrailer?game.trailer:'';
+}
+
+document.getElementById('search').oninput=applyFilter;
+document.getElementById('filterPlatform').onchange=applyFilter;
+document.getElementById('filterPrice').onchange=applyFilter;
+document.getElementById('clearBtn').onclick=()=>{
+  document.getElementById('search').value='';
+  document.getElementById('filterPlatform').value='الكل';
+  document.getElementById('filterPrice').value='الكل';
+  applyFilter();
+};
+
+function applyFilter(){
+  let val=document.getElementById('search').value.toLowerCase();
+  let plat=document.getElementById('filterPlatform').value;
+  let price=document.getElementById('filterPrice').value;
+  let filtered=games.filter(g=>{
+    let matchesSearch=g.name.toLowerCase().includes(val);
+    let matchesPlat=(plat==='الكل'||g.platforms.includes(plat));
+    let matchesPrice=true;
+    const numPrice=Number(g.price.replace('$',''));
+    if(price==='أقل من 30$') matchesPrice=numPrice<30;
+    else if(price==='30$ - 60$') matchesPrice=numPrice>=30 && numPrice<=60;
+    else if(price==='أكثر من 60$') matchesPrice=numPrice>60;
+    return matchesSearch && matchesPlat && matchesPrice;
+  });
+  renderGames(filtered);
+}
+
+// Dark/Light
+document.getElementById('darkBtn').onclick=()=>{document.documentElement.setAttribute('data-theme','dark');};
+document.getElementById('lightBtn').onclick=()=>{document.documentElement.setAttribute('data-theme','light');};
+
+// Initial render
+renderGames(games);
+</script>
+</body>
+</html>
